@@ -1,0 +1,51 @@
+body {
+	background-color: #f5f8fa;
+	color: #333; /* Dark gray text for readability */
+    padding-top: 70px; 
+	
+}
+h1, h2, h3, h4 {
+    font-family: 'Merriweather', serif; /* Use Merriweather for headers */
+    font-weight: 700;
+}
+
+button, .btn {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+}
+
+.navbar {
+	background-color: #004085; /* Bank-like dark blue */
+	color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    transition: transform 0.2s;
+	background-color: #ffffff; /* White background for card components */
+
+}
+.content{
+	min-height : calc( 100vh - 240px );
+
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.btn {
+    transition: background-color 0.2s;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+footer {
+	background-color: #004085;
+	color: #ffffff;
+    position: relative;
+    bottom: 0px;
+    width: 100%;
+}
