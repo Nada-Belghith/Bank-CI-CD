@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'  // Configure "Maven" dans Jenkins > Global Tool Configuration
+        maven 'Maven'
         jdk 'JDK21'
     }
 
@@ -25,19 +25,10 @@ pipeline {
             }
         }
 
-        // stage('Pre-Deployment Performance Test') {
-        //     steps {
-        //         echo "Running pre-deployment JMeter test..."
-        //         sh """
-        //             ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_local.jmx -l results_local.jtl -Jhost=localhost -Jport=8083
-        //         """
-        //     }
-        //     post {
-        //         always {
-        //             perfReport errorFailedThreshold: 0, sourceDataFiles: 'results_local.jtl'
-        //         }
-        //     }
-        // }
+        //
+        // STAGE "Pre-Deployment" SUPPRIMÉ (Erreur n°1 corrigée)
+        // Il échouait car l'application n'était pas démarrée.
+        //
 
         stage('Build Docker Image') {
             steps {
@@ -47,41 +38,48 @@ pipeline {
 
         stage('Deploy Container') {
             steps {
-                                sh 'docker run -d -p 8083:8080 --name $APP_NAME $DOCKER_IMAGE'
-                                // wait for the app to be ready (poll /actuator/health or /)
-                                sh '''
-                                        echo "Waiting for Spring Boot to start on http://localhost:8083 ..."
-                                        ATTEMPTS=0
-                                        MAX=30
-                                        until curl -s -o /dev/null -w "%{http_code}" http://localhost:8083/ | grep -q "200"; do
-                                            ATTEMPTS=$((ATTEMPTS+1))
-                                            if [ "$ATTEMPTS" -ge "$MAX" ]; then
-                                                echo "Timed out waiting for application to start"
-                                                exit 1
-                                            fi
-                                            sleep 2
-                                            echo "Waiting... ($ATTEMPTS)"
-                                        done
-                                        echo "Application is up"
-                                '''
+                // Nettoyage avant de lancer
+                sh 'docker stop $APP_NAME || true'
+                sh 'docker rm $APP_NAME || true'
+                
+                //
+                // CORRECTION n°2 : Le mapping de port est HOTE:CONTENEUR
+                // On mappe le port 8083 de l'hôte au port 8083 du conteneur.
+                //
+                sh 'docker run -d -p 8083:8083 --name $APP_NAME $DOCKER_IMAGE'
+                
+                // Le script d'attente vise 127.0.0.1:8083 (correct)
+                sh '''
+                    echo "Waiting for Spring Boot to start on http://127.0.0.1:8083 ..."
+                    ATTEMPTS=0
+                    MAX=30
+                    until curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8083/ | grep -q "200"; do
+                        ATTEMPTS=$((ATTEMPTS+1))
+                        if [ "$ATTEMPTS" -ge "$MAX" ]; then
+                            echo "Timed out waiting for application to start"
+                            exit 1
+                        fi
+                        sleep 2
+                        echo "Waiting... ($ATTEMPTS)"
+                    done
+                    echo "Application is up"
+                '''
             }
         }
 
         stage('Post-Deployment Performance Test') {
             steps {
-                echo "Running post-deployment JMeter test against 127.0.0.1:8081..."
+                //
+                // CORRECTION n°3 : Le test JMeter vise le port 8083
+                //
+                echo "Running post-deployment JMeter test against 127.0.0.1:8083..."
                 sh """
-                    #
-                    # LA CORRECTION EST ICI : On utilise -Jhost=127.0.0.1 au lieu de localhost
-                    #
-                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=127.0.0.1 -Jport=8081
+                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=127.0.0.1 -Jport=8083
                 """
             }
             post {
                 always {
-                    // On publie le rapport. 
-                    // errorFailedThreshold: 5 signifie que le build sera "Failed" si plus de 5% des requêtes échouent.
-                    // Mettez le seuil que vous voulez (par ex: 1 pour 1%)
+                    // Seuil d'échec à 5% d'erreurs
                     perfReport errorFailedThreshold: 5, sourceDataFiles: 'results_docker.jtl'
                 }
             }
