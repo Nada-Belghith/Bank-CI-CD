@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'  // Configure "Maven" dans Jenkins > Global Tool Configuration
+        maven 'Maven'
         jdk 'JDK21'
     }
 
@@ -25,8 +25,6 @@ pipeline {
             }
         }
 
-        // STAGE "Pre-Deployment" SUPPRIMÉ (c'était correct)
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE .'
@@ -39,32 +37,33 @@ pipeline {
                 sh 'docker stop $APP_NAME || true'
                 sh 'docker rm $APP_NAME || true'
                 
-                sh 'docker run -d -p 8083:8083 --name $APP_NAME $DOCKER_IMAGE'
+                //
+                // CORRECTION FINALE :
+                // On passe les informations de la base de données (qui est sur l'HÔTE)
+                // au conteneur via des variables d'environnement.
+                //
+                // REMPLACEZ "bank_db", "root", et "password" PAR VOS VRAIS IDENTIFIANTS
+                //
+                sh '''
+                   docker run -d -p 8083:8083 \
+                   -e SPRING_DATASOURCE_URL="jdbc:mysql://host.docker.internal:3306/mydb?useSSL=false" \
+                   -e SPRING_DATASOURCE_USERNAME="root" \
+                   -e SPRING_DATASOURCE_PASSWORD="" \
+                   --name $APP_NAME $DOCKER_IMAGE
+                '''
                 
-                //
-                // AMÉLIORATION CI-DESSOUS
-                //
+                // Le script d'attente (il est correct)
                 sh '''
                     echo "Waiting for Spring Boot to start on http://127.0.0.1:8083 ..."
                     ATTEMPTS=0
                     MAX=30
-                    
-                    #
-                    # CORRECTION 1: On ne cherche plus "200", mais n'importe quel code HTTP (2xx, 3xx, 4xx)
-                    # Le 'grep -E "[234].."' vérifie que le code n'est pas "000" (échec de connexion)
-                    #
                     until curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8083/ | grep -E -q "[234].."; do
                         ATTEMPTS=$((ATTEMPTS+1))
                         if [ "$ATTEMPTS" -ge "$MAX" ]; then
                             echo "Timed out waiting for application to start"
-                            
-                            #
-                            # CORRECTION 2: Si ça échoue, on affiche les logs du conteneur pour le débogage !
-                            #
                             echo "--- DOCKER LOGS ---"
                             docker logs $APP_NAME
                             echo "--- END DOCKER LOGS ---"
-                            
                             exit 1
                         fi
                         sleep 2
@@ -77,10 +76,6 @@ pipeline {
 
         stage('Post-Deployment Performance Test') {
             steps {
-                //
-                // CORRECTION 3:
-                // Le test JMeter doit viser le port 8083 (que l'on vient d'exposer)
-                //
                 echo "Running post-deployment JMeter test against 127.0.0.1:8083..."
                 sh """
                     ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=127.0.0.1 -Jport=8083
