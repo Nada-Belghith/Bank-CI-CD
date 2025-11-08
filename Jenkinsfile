@@ -47,13 +47,13 @@ pipeline {
 
         stage('Deploy Container') {
             steps {
-                                sh 'docker run -d -p 8081:8080 --name $APP_NAME $DOCKER_IMAGE'
+                                sh 'docker run -d -p 8083:8080 --name $APP_NAME $DOCKER_IMAGE'
                                 // wait for the app to be ready (poll /actuator/health or /)
                                 sh '''
-                                        echo "Waiting for Spring Boot to start on http://localhost:8081 ..."
+                                        echo "Waiting for Spring Boot to start on http://localhost:8083 ..."
                                         ATTEMPTS=0
                                         MAX=30
-                                        until curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/ | grep -q "200"; do
+                                        until curl -s -o /dev/null -w "%{http_code}" http://localhost:8083/ | grep -q "200"; do
                                             ATTEMPTS=$((ATTEMPTS+1))
                                             if [ "$ATTEMPTS" -ge "$MAX" ]; then
                                                 echo "Timed out waiting for application to start"
