@@ -3,7 +3,7 @@ FROM maven:3.9.4-eclipse-temurin-17 AS build
 WORKDIR /workspace
 
 # Copy maven wrapper and project files for cache-friendly builds
-COPY pom.xml mvnw pom.xml
+COPY pom.xml mvnw ./
 COPY .mvn .mvn
 COPY src ./src
 
