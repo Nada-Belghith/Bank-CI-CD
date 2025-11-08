@@ -18,9 +18,15 @@ WORKDIR /app
 # Copier le WAR généré
 COPY --from=build /workspace/target/FirstSpringBootApplication-0.0.1-SNAPSHOT.war app.war
 
-EXPOSE 8080
+#
+# CORRECTION ICI : Le port de votre application est 8083
+#
+EXPOSE 8083
 
+#
+# CORRECTION ICI : Le Healthcheck doit viser le port 8083
+#
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget -qO- http://localhost:8080/ || exit 1
+  CMD wget -qO- http://localhost:8083/ || exit 1
 
 ENTRYPOINT ["java","-jar","/app/app.war"]
