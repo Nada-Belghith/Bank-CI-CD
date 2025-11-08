@@ -29,7 +29,7 @@ pipeline {
             steps {
                 echo "Running pre-deployment JMeter test..."
                 sh """
-                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_local.jmx -l results_local.jtl
+                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_local.jmx -l results_local.jtl -Jhost=localhost -Jport=8080
                 """
             }
             post {
@@ -47,7 +47,23 @@ pipeline {
 
         stage('Deploy Container') {
             steps {
-                sh 'docker run -d -p 8081:8080 --name $APP_NAME $DOCKER_IMAGE'
+                                sh 'docker run -d -p 8081:8080 --name $APP_NAME $DOCKER_IMAGE'
+                                // wait for the app to be ready (poll /actuator/health or /)
+                                sh '''
+                                        echo "Waiting for Spring Boot to start on http://localhost:8081 ..."
+                                        ATTEMPTS=0
+                                        MAX=30
+                                        until curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/ | grep -q "200"; do
+                                            ATTEMPTS=$((ATTEMPTS+1))
+                                            if [ "$ATTEMPTS" -ge "$MAX" ]; then
+                                                echo "Timed out waiting for application to start"
+                                                exit 1
+                                            fi
+                                            sleep 2
+                                            echo "Waiting... ($ATTEMPTS)"
+                                        done
+                                        echo "Application is up"
+                                '''
             }
         }
 
@@ -55,7 +71,7 @@ pipeline {
             steps {
                 echo "Running post-deployment JMeter test..."
                 sh """
-                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl
+                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=localhost -Jport=8081
                 """
             }
             post {
