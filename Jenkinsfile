@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         APP_NAME = "Bank"
-        DOCKER_IMAGE = "Bank-app:latest"
+        DOCKER_IMAGE = "bank-app:latest"
         JMETER_HOME = "/opt/jmeter/apache-jmeter-5.6.3"
     }
 
