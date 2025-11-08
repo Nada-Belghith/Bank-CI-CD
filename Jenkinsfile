@@ -29,7 +29,7 @@ pipeline {
             steps {
                 echo "Running pre-deployment JMeter test..."
                 sh """
-                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_local.jmx -l results_local.jtl -Jhost=localhost -Jport=8080
+                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_local.jmx -l results_local.jtl -Jhost=localhost -Jport=8083
                 """
             }
             post {
