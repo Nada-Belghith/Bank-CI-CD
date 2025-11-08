@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'
+        maven 'Maven'  // Configure "Maven" dans Jenkins > Global Tool Configuration
         jdk 'JDK21'
     }
 
@@ -25,10 +25,7 @@ pipeline {
             }
         }
 
-        //
-        // STAGE "Pre-Deployment" SUPPRIMÉ (Erreur n°1 corrigée)
-        // Il échouait car l'application n'était pas démarrée.
-        //
+        // STAGE "Pre-Deployment" SUPPRIMÉ (c'était correct)
 
         stage('Build Docker Image') {
             steps {
@@ -42,21 +39,32 @@ pipeline {
                 sh 'docker stop $APP_NAME || true'
                 sh 'docker rm $APP_NAME || true'
                 
-                //
-                // CORRECTION n°2 : Le mapping de port est HOTE:CONTENEUR
-                // On mappe le port 8083 de l'hôte au port 8083 du conteneur.
-                //
                 sh 'docker run -d -p 8083:8083 --name $APP_NAME $DOCKER_IMAGE'
                 
-                // Le script d'attente vise 127.0.0.1:8083 (correct)
+                //
+                // AMÉLIORATION CI-DESSOUS
+                //
                 sh '''
                     echo "Waiting for Spring Boot to start on http://127.0.0.1:8083 ..."
                     ATTEMPTS=0
                     MAX=30
-                    until curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8083/ | grep -q "200"; do
+                    
+                    #
+                    # CORRECTION 1: On ne cherche plus "200", mais n'importe quel code HTTP (2xx, 3xx, 4xx)
+                    # Le 'grep -E "[234].."' vérifie que le code n'est pas "000" (échec de connexion)
+                    #
+                    until curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8083/ | grep -E -q "[234].."; do
                         ATTEMPTS=$((ATTEMPTS+1))
                         if [ "$ATTEMPTS" -ge "$MAX" ]; then
                             echo "Timed out waiting for application to start"
+                            
+                            #
+                            # CORRECTION 2: Si ça échoue, on affiche les logs du conteneur pour le débogage !
+                            #
+                            echo "--- DOCKER LOGS ---"
+                            docker logs $APP_NAME
+                            echo "--- END DOCKER LOGS ---"
+                            
                             exit 1
                         fi
                         sleep 2
@@ -70,7 +78,8 @@ pipeline {
         stage('Post-Deployment Performance Test') {
             steps {
                 //
-                // CORRECTION n°3 : Le test JMeter vise le port 8083
+                // CORRECTION 3:
+                // Le test JMeter doit viser le port 8083 (que l'on vient d'exposer)
                 //
                 echo "Running post-deployment JMeter test against 127.0.0.1:8083..."
                 sh """
