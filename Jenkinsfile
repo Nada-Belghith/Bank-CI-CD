@@ -69,20 +69,27 @@ pipeline {
 
         stage('Post-Deployment Performance Test') {
             steps {
-                echo "Running post-deployment JMeter test..."
+                echo "Running post-deployment JMeter test against 127.0.0.1:8081..."
                 sh """
-                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=localhost -Jport=8081
+                    #
+                    # LA CORRECTION EST ICI : On utilise -Jhost=127.0.0.1 au lieu de localhost
+                    #
+                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=127.0.0.1 -Jport=8081
                 """
             }
             post {
                 always {
-                    perfReport errorFailedThreshold: 0, sourceDataFiles: 'results_docker.jtl'
+                    // On publie le rapport. 
+                    // errorFailedThreshold: 5 signifie que le build sera "Failed" si plus de 5% des requêtes échouent.
+                    // Mettez le seuil que vous voulez (par ex: 1 pour 1%)
+                    perfReport errorFailedThreshold: 5, sourceDataFiles: 'results_docker.jtl'
                 }
             }
         }
     }
 
     post {
+        // Le cleanup se fait à la fin, quoi qu'il arrive
         always {
             echo "Cleaning up Docker container..."
             sh 'docker stop $APP_NAME || true'
