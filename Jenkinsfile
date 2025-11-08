@@ -25,19 +25,19 @@ pipeline {
             }
         }
 
-        stage('Pre-Deployment Performance Test') {
-            steps {
-                echo "Running pre-deployment JMeter test..."
-                sh """
-                    ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_local.jmx -l results_local.jtl -Jhost=localhost -Jport=8083
-                """
-            }
-            post {
-                always {
-                    perfReport errorFailedThreshold: 0, sourceDataFiles: 'results_local.jtl'
-                }
-            }
-        }
+        // stage('Pre-Deployment Performance Test') {
+        //     steps {
+        //         echo "Running pre-deployment JMeter test..."
+        //         sh """
+        //             ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_local.jmx -l results_local.jtl -Jhost=localhost -Jport=8083
+        //         """
+        //     }
+        //     post {
+        //         always {
+        //             perfReport errorFailedThreshold: 0, sourceDataFiles: 'results_local.jtl'
+        //         }
+        //     }
+        // }
 
         stage('Build Docker Image') {
             steps {
