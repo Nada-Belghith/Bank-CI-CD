@@ -15,9 +15,6 @@ pipeline {
         
         // NOUVEAU: Nom pour notre réseau Docker privé
         NETWORK_NAME = "bank-test-net"
-        
-        // On n'a plus besoin de JMETER_HOME
-        // JMETER_HOME = "/opt/jmeter/apache-jmeter-5.6.3"
     }
 
     stages {
@@ -88,10 +85,12 @@ pipeline {
                 // NOUVEAU: On crée un dossier pour les résultats
                 sh 'mkdir -p ${pwd}/jmeter-results'
                 
-                #
-                # GROSSE MODIFICATION ICI :
-                # On remplace l'ancien appel JMeter par un 'docker run'
-                #
+                //
+                // CORRECTION DE SYNTAXE : J'ai remplacé '#' par '//'
+                //
+                // GROSSE MODIFICATION ICI :
+                // On remplace l'ancien appel JMeter par un 'docker run'
+                //
                 sh """
                     docker run --rm --network $NETWORK_NAME \
                     -v "${pwd}/jmeter:/jmeter" \
@@ -105,7 +104,7 @@ pipeline {
             }
             post {
                 always {
-                    # MODIFICATION : On lit le rapport depuis le nouveau dossier
+                    // MODIFICATION : On lit le rapport depuis le nouveau dossier
                     perfReport errorFailedThreshold: 5, sourceDataFiles: 'jmeter-results/results_docker.jtl'
                 }
             }
