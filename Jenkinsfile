@@ -81,7 +81,7 @@ pipeline {
 JMETER_JVM_ARGS="-Djava.net.preferIPv4Stack=true" ${env.JMETER_HOME}/bin/jmeter -n \
    -t jmeter/performance_test_docker.jmx \
    -l results_docker.jtl \
-   -Jhost=host.docker.internal \
+   -Jhost=127.0.0.1\
    -Jport=8083                """
             }
             post {
