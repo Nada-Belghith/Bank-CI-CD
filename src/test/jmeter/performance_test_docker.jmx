@@ -108,19 +108,19 @@
               <elementProp name="cin" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.name">cin</stringProp>
-                <stringProp name="Argument.value">${__P(cin,12345678)}</stringProp>
+                <stringProp name="Argument.value">${__P(cin,${__counter(FALSE,)})}${__threadNum}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="nom" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.name">nom</stringProp>
-                <stringProp name="Argument.value">${__P(nom,John)}</stringProp>
+                <stringProp name="Argument.value">${__P(nom,Test)}${__counter(FALSE,)}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="prenom" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.name">prenom</stringProp>
-                <stringProp name="Argument.value">${__P(prenom,Doe)}</stringProp>
+                <stringProp name="Argument.value">${__P(prenom,User)}${__counter(FALSE,)}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
