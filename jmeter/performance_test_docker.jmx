@@ -62,7 +62,7 @@
 					<elementProp name="HTTPsampler.Arguments" elementType="Arguments">
 						<collectionProp name="Arguments.arguments"/>
 					</elementProp>
-					<stringProp name="HTTPSampler.path">/clients</stringProp>
+					<stringProp name="HTTPSampler.path">/all</stringProp>
 					<stringProp name="HTTPSampler.method">GET</stringProp>
 				</HTTPSamplerProxy>
 				<hashTree/>
