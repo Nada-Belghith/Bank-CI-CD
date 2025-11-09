@@ -9,7 +9,7 @@ pipeline {
     environment {
         APP_NAME = "Bank"
         DOCKER_IMAGE = "bank-app:latest"
-        JMETER_DOCKER_IMAGE = "justb4/jmeter:5.6" 
+        JMETER_DOCKER_IMAGE = "justb4/jmeter:5.6.3" 
         NETWORK_NAME = "bank-test-net"
     }
 
