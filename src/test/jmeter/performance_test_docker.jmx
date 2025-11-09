@@ -66,6 +66,18 @@
         </ResultCollector>
         <hashTree/>
 
+        <!-- 
+          CORRECTION : 
+          C'EST LA PARTIE MANQUANTE. 
+          Ce collecteur écrit le fichier .jtl que Jenkins doit lire.
+          La commande -l ... de Jenkins va l'utiliser.
+        -->
+        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector" testname="Simple Data Writer" enabled="true">
+          <boolProp name="ResultCollector.error_logging">true</boolProp>
+          <stringProp name="filename"></stringProp> <!-- Laissé vide, car -l dans Jenkins va le surcharger -->
+        </ResultCollector>
+        <hashTree/>
+        
       </hashTree>
     </hashTree>
   </hashTree>
