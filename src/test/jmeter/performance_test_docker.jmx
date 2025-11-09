@@ -31,9 +31,11 @@
       <hashTree>
         
         <!-- 
-          CORRECTION SYNTAXE : 
-          Le <HTTPSamplerProxy> ET son <hashTree/> sont tous les deux commentés.
+          CORRECTION 1 : 
+          Nous utilisons ${__P(variable, defaut)}
+          __P() lit la propriété (-Jhost=Bank) de Jenkins.
         -->
+
         <!-- <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
@@ -43,26 +45,14 @@
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.path">/</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-        </HTTPSamplerProxy>
-        <hashTree/> -->
-
-        <!-- 
-          Test de la page d'accueil (décommenté).
-          ${__P(host, ...)} lit la variable -Jhost=Bank de Jenkins.
-        -->
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET / (home)" enabled="true">
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments"/>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(host, 127.0.0.1)}</stringProp>
-          <stringProp name="HTTPSampler.port">${__P(port, 8083)}</stringProp>
-          <stringProp name="HTTPSampler.protocol">http</stringProp>
-          <stringProp name="HTTPSampler.path">/</stringProp>
-          <stringProp name="HTTPSampler.method">GET</stringProp>
-        </HTTPSamplerProxy>
+        </HTTPSamplerProxy> -->
         <hashTree/>
 
-        <!-- Test de la liste des clients (page web) -->
+        <!-- 
+          CORRECTION 2 : 
+          J'ai mis à jour le chemin vers "/clients/all" 
+          (d'après votre capture d'écran)
+        -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /clients/all" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
@@ -75,7 +65,19 @@
         </HTTPSamplerProxy>
         <hashTree/>
 
-        <!-- Test de la liste des clients (API JSON) -->
+        <!-- Additional endpoints for performance testing -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET / (home)" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(host, 127.0.0.1)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(port, 8083)}</stringProp>
+          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.path">/</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /clients/all-json (API)" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
@@ -88,7 +90,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
 
-        <!-- Test du formulaire d'ajout de client (GET) -->
+        <!-- GET /clients/add to fetch the form page before POST -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /clients/add (get form)" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
@@ -101,7 +103,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
 
-        <!-- Test de la soumission du formulaire (POST) -->
+        <!-- POST /clients/save to add a client (form submit) -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /clients/save (add client)" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -136,7 +138,6 @@
         </HTTPSamplerProxy>
         <hashTree/>
 
-        <!-- Test de la liste des comptes (page web) -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /comptes/all" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
@@ -149,7 +150,6 @@
         </HTTPSamplerProxy>
         <hashTree/>
 
-        <!-- Test de la liste des comptes (API JSON) -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /comptes/all-json (API)" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
@@ -162,7 +162,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
 
-        <!-- Test de la recherche de compte -->
+        <!-- Example search with query parameter; replace CIN value via -Jcin if needed -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /comptes/search?cin=${__P(cin,12345678)}" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>

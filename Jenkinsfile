@@ -9,7 +9,7 @@ pipeline {
     environment {
         APP_NAME = "Bank"
         DOCKER_IMAGE = "bank-app:latest"
-        JMETER_DOCKER_IMAGE = "alpine/jmeter:5.6" 
+        JMETER_DOCKER_IMAGE = "justb4/jmeter:5.6.3" 
         NETWORK_NAME = "bank-test-net"
     }
 
@@ -112,14 +112,11 @@ pipeline {
                 
                 sh """
                     docker run --rm --network $NETWORK_NAME \
-                    -v "${WORKSPACE}/src/test/jmeter:/jmeter" \
+                    -v "${WORKSPACE}/jmeter:/jmeter" \
                     -v "${WORKSPACE}/jmeter-results:/results" \
                     ${JMETER_DOCKER_IMAGE} \
-                    --entrypoint "" \
-                    /opt/apache-jmeter/bin/jmeter -n \
-                    -t /jmeter/performance_test_docker.jmx \
+                    -n -t /jmeter/performance_test_docker.jmx \
                     -l /results/results_docker.jtl \
-                    -j /results/jmeter.log \
                     -Jhost=$APP_NAME \
                     -Jport=8083
                 """
