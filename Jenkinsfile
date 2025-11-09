@@ -11,7 +11,7 @@ pipeline {
         DOCKER_IMAGE = "bank-app:latest"
         
         // NOUVEAU: Nom de l'image Docker pour JMeter
-        JMETER_DOCKER_IMAGE = "justb4/jmeter:5.6.3" 
+        JMETER_DOCKER_IMAGE = "justb4/jmeter:5.6" 
         
         // NOUVEAU: Nom pour notre réseau Docker privé
         NETWORK_NAME = "bank-test-net"
