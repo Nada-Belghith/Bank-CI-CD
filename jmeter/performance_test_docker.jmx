@@ -36,7 +36,7 @@
           __P() lit la propriété (-Jhost=Bank) de Jenkins.
         -->
 
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /" enabled="true">
+        <!-- <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
@@ -45,7 +45,7 @@
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.path">/</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-        </HTTPSamplerProxy>
+        </HTTPSamplerProxy> -->
         <hashTree/>
 
         <!-- 
