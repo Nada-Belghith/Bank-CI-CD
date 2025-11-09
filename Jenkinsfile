@@ -13,7 +13,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://Nada-Belghith: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@github.com/Nada-Belghith/Bank.git'
@@ -38,8 +37,13 @@ pipeline {
                 sh 'docker stop $APP_NAME || true'
                 sh 'docker rm $APP_NAME || true'
                 
-                // Démarrage du conteneur avec les variables de BDD
-                // (host.docker.internal est CORRECT ici, car c'est DEPUIS le conteneur)
+                //
+                // CORRECTION FINALE :
+                // On passe les informations de la base de données (qui est sur l'HÔTE)
+                // au conteneur via des variables d'environnement.
+                //
+                // REMPLACEZ "bank_db", "root", et "password" PAR VOS VRAIS IDENTIFIANTS
+                //
                 sh '''
                    docker run -d -p 8083:8083 \
                    -e SPRING_DATASOURCE_URL="jdbc:mysql://host.docker.internal:3306/mydb?useSSL=false" \
@@ -48,8 +52,7 @@ pipeline {
                    --name $APP_NAME $DOCKER_IMAGE
                 '''
                 
-                // Script d'attente
-                // (127.0.0.1 est CORRECT ici, car c'est DEPUIS l'hôte)
+                // Le script d'attente (il est correct)
                 sh '''
                     echo "Waiting for Spring Boot to start on http://127.0.0.1:8083 ..."
                     ATTEMPTS=0
@@ -73,24 +76,25 @@ pipeline {
 
         stage('Post-Deployment Performance Test') {
             steps {
-                #
-                # CORRECTION FINALE : JMeter (sur l'hôte) doit tester 127.0.0.1
-                #
                 echo "Running post-deployment JMeter test against 127.0.0.1:8083..."
                 sh """
-                    # On garde le fix IPv4 pour Java
-                    JMETER_JVM_ARGS="-Djava.net.preferIPv4Stack=true" ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=127.0.0.1 -Jport=8083
-                """
+JMETER_JVM_ARGS="-Djava.net.preferIPv4Stack=true" ${env.JMETER_HOME}/bin/jmeter -n \
+   -t jmeter/performance_test_docker.jmx \
+   -l results_docker.jtl \
+   -Jhost=host.docker.internal \
+   -Jport=8083                """
             }
             post {
                 always {
+                    // Seuil d'échec à 5% d'erreurs
                     perfReport errorFailedThreshold: 5, sourceDataFiles: 'results_docker.jtl'
                 }
             }
         }
-    } // Fin du bloc 'stages'
+    }
 
     post {
+        // Le cleanup se fait à la fin, quoi qu'il arrive
         always {
             echo "Cleaning up Docker container..."
             sh 'docker stop $APP_NAME || true'
