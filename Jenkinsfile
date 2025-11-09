@@ -47,32 +47,25 @@ pipeline {
                     docker run -d --name bank-mysql --network $NETWORK_NAME \
                       -e MYSQL_ROOT_PASSWORD=root \
                       -e MYSQL_DATABASE=bank_db \
-                      -e MYSQL_ROOT_HOST='%' \
-                      mysql:8.0 \
-                      --character-set-server=utf8mb4 \
-                      --collation-server=utf8mb4_unicode_ci \
-                      --default-authentication-plugin=mysql_native_password
+                      mysql:8.0
                 '''
 
-                // Attendre que MySQL soit prêt et vérifier la connectivité
+                // Attendre que MySQL soit prêt
                 sh '''
                     echo "Waiting for MySQL (bank-mysql) to be ready..."
                     ATT=0
-                    MAX=60
-                    until docker exec bank-mysql mysql -uroot -proot -e "SELECT 1" &>/dev/null; do
+                    MAX=30
+                    until docker logs bank-mysql 2>&1 | grep -q "ready for connections"; do
                       ATT=$((ATT+1))
                       if [ "$ATT" -ge "$MAX" ]; then
-                        echo "MySQL did not become accessible in time"
-                        docker logs bank-mysql
+                        echo "MySQL did not start in time"
+                        docker logs bank-mysql || true
                         exit 1
                       fi
                       sleep 2
                       echo "Waiting for MySQL... ($ATT)"
                     done
-                    echo "MySQL ready and accepting connections"
-
-                    # Create database if it doesn't exist
-                    docker exec bank-mysql mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS bank_db;"
+                    echo "MySQL ready"
                 '''
 
                 //
@@ -80,13 +73,10 @@ pipeline {
                 //
                 sh '''
                     docker run -d -p 8083:8083 --network $NETWORK_NAME \
-                      -e SPRING_DATASOURCE_URL="jdbc:mysql://bank-mysql:3306/bank_db?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true" \
+                      -e SPRING_DATASOURCE_URL="jdbc:mysql://bank-mysql:3306/bank_db?useSSL=false&allowPublicKeyRetrieval=true" \
                       -e SPRING_DATASOURCE_USERNAME="root" \
                       -e SPRING_DATASOURCE_PASSWORD="root" \
-                      -e SPRING_JPA_HIBERNATE_DDL_AUTO="update" \
-                      -e SPRING_JPA_SHOW_SQL="true" \
                       -e SERVER_PORT=8083 \
-                      -e JAVA_TOOL_OPTIONS="-Xmx512m -Dspring.datasource.hikari.initializationFailTimeout=60000" \
                       --name $APP_NAME $DOCKER_IMAGE
                 '''
 
