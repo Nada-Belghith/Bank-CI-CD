@@ -10,10 +10,11 @@ pipeline {
         APP_NAME = "Bank"
         DOCKER_IMAGE = "bank-app:latest"
         
-        // NOUVEAU: Nom de l'image Docker pour JMeter
-        JMETER_DOCKER_IMAGE = "justb4/jmeter:5.6" 
+        //
+        // CORRECTION : J'ai mis 'latest' pour être sûr de trouver l'image.
+        //
+        JMETER_DOCKER_IMAGE = "justb4/jmeter:latest" 
         
-        // NOUVEAU: Nom pour notre réseau Docker privé
         NETWORK_NAME = "bank-test-net"
     }
 
@@ -42,8 +43,6 @@ pipeline {
                 // Nettoyage avant de lancer
                 sh 'docker stop $APP_NAME || true'
                 sh 'docker rm $APP_NAME || true'
-                
-                // NOUVEAU: On crée le réseau pour que les conteneurs puissent se parler
                 sh 'docker network create $NETWORK_NAME || true'
                 
                 // Démarrage du conteneur avec les variables de BDD
@@ -116,7 +115,6 @@ pipeline {
             echo "Cleaning up Docker container and network..."
             sh 'docker stop $APP_NAME || true'
             sh 'docker rm $APP_NAME || true'
-            // NOUVEAU: On nettoie aussi le réseau
             sh 'docker network rm $NETWORK_NAME || true'
         }
     }
