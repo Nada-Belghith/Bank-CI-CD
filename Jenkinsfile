@@ -74,20 +74,20 @@ pipeline {
             }
         }
 
-        // stage('Post-Deployment Performance Test') {
-        //     steps {
-        //         echo "Running post-deployment JMeter test against 127.0.0.1:8083..."
-        //         sh """
-        //            JMETER_JVM_ARGS="-Djava.net.preferIPv4Stack=true" ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=127.0.0.1 -Jport=8083
-        //         """
-        //     }
-        //     post {
-        //         always {
-        //             // Seuil d'échec à 5% d'erreurs
-        //             perfReport errorFailedThreshold: 5, sourceDataFiles: 'results_docker.jtl'
-        //         }
-        //     }
-        // }
+        stage('Post-Deployment Performance Test') {
+            steps {
+                echo "Running post-deployment JMeter test against 127.0.0.1:8083..."
+                sh """
+                   JMETER_JVM_ARGS="-Djava.net.preferIPv4Stack=true" ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=127.0.0.1 -Jport=8083
+                """
+            }
+            post {
+                always {
+                    // Seuil d'échec à 5% d'erreurs
+                    perfReport errorFailedThreshold: 5, sourceDataFiles: 'results_docker.jtl'
+                }
+            }
+        }
     }
 
     post {
