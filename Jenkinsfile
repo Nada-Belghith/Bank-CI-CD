@@ -82,19 +82,19 @@ pipeline {
             steps {
                 echo "Running post-deployment JMeter test from Docker..."
                 
-                // NOUVEAU: On crée un dossier pour les résultats
-                sh 'mkdir -p ${pwd}/jmeter-results'
+                //
+                // CORRECTION 1: On crée le dossier *relativement* au workspace
+                //
+                sh 'mkdir -p jmeter-results'
                 
                 //
-                // CORRECTION DE SYNTAXE : J'ai remplacé '#' par '//'
-                //
-                // GROSSE MODIFICATION ICI :
-                // On remplace l'ancien appel JMeter par un 'docker run'
+                // CORRECTION 2: On utilise la variable ${WORKSPACE}
+                // pour donner le chemin absolu au conteneur Docker JMeter.
                 //
                 sh """
                     docker run --rm --network $NETWORK_NAME \
-                    -v "${pwd}/jmeter:/jmeter" \
-                    -v "${pwd}/jmeter-results:/results" \
+                    -v "${WORKSPACE}/jmeter:/jmeter" \
+                    -v "${WORKSPACE}/jmeter-results:/results" \
                     ${JMETER_DOCKER_IMAGE} \
                     -n -t /jmeter/performance_test_docker.jmx \
                     -l /results/results_docker.jtl \
@@ -104,7 +104,7 @@ pipeline {
             }
             post {
                 always {
-                    // MODIFICATION : On lit le rapport depuis le nouveau dossier
+                    // Ce chemin est relatif au workspace, il est donc correct.
                     perfReport errorFailedThreshold: 5, sourceDataFiles: 'jmeter-results/results_docker.jtl'
                 }
             }
