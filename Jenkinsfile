@@ -40,32 +40,62 @@ pipeline {
 
         stage('Deploy Container') {
             steps {
-                // Nettoyage avant de lancer
+                // Cleanup any previous resources
                 sh 'docker stop $APP_NAME || true'
                 sh 'docker rm $APP_NAME || true'
+                sh 'docker stop bank-mysql || true'
+                sh 'docker rm bank-mysql || true'
                 sh 'docker network create $NETWORK_NAME || true'
-                
-                // Démarrage du conteneur avec les variables de BDD
+
+                // Start a MySQL container in the same network so the app has a reachable DB
                 sh '''
-                   docker run -d -p 8083:8083 \
-                   --network $NETWORK_NAME \
-                   -e SPRING_DATASOURCE_URL="jdbc:mysql://host.docker.internal:3306/mydb?useSSL=false" \
-                   -e SPRING_DATASOURCE_USERNAME="root" \
-                   -e SPRING_DATASOURCE_PASSWORD="" \
-                   --name $APP_NAME $DOCKER_IMAGE
+                   docker run -d --name bank-mysql --network $NETWORK_NAME \
+                     -e MYSQL_ROOT_PASSWORD=root \
+                     -e MYSQL_DATABASE=bank_db \
+                     mysql:8.0
                 '''
-                
-                // Le script d'attente (curl) ne change pas, il vérifie toujours l'hôte
+
+                // Wait for MySQL to be ready (timeout 60s)
+                sh '''
+                   echo "Waiting for MySQL (bank-mysql) to be ready..."
+                   ATT=0
+                   MAX=30
+                   until docker logs bank-mysql 2>&1 | grep -q "ready for connections"; do
+                     ATT=$((ATT+1))
+                     if [ "$ATT" -ge "$MAX" ]; then
+                       echo "MySQL did not start in time"
+                       docker logs bank-mysql || true
+                       exit 1
+                     fi
+                     sleep 2
+                     echo "Waiting for MySQL... ($ATT)"
+                   done
+                   echo "MySQL ready"
+                '''
+
+                // Start the application wired to the MySQL container
+                sh '''
+                   docker run -d -p 8083:8083 --network $NETWORK_NAME \
+                     -e SPRING_DATASOURCE_URL="jdbc:mysql://bank-mysql:3306/bank_db?useSSL=false" \
+                     -e SPRING_DATASOURCE_USERNAME="root" \
+                     -e SPRING_DATASOURCE_PASSWORD="root" \
+                     -e SERVER_PORT=8083 \
+                     --name $APP_NAME $DOCKER_IMAGE
+                '''
+
+                // Wait for the application to respond HTTP 2xx/3xx/4xx (stop on timeout)
                 sh '''
                     echo "Waiting for Spring Boot to start on http://127.0.0.1:8083 ..."
                     ATTEMPTS=0
-                    MAX=30
+                    MAX=60
                     until curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8083/ | grep -E -q "[234].."; do
                         ATTEMPTS=$((ATTEMPTS+1))
                         if [ "$ATTEMPTS" -ge "$MAX" ]; then
                             echo "Timed out waiting for application to start"
-                            echo "--- DOCKER LOGS ---"
-                            docker logs $APP_NAME
+                            echo "--- APP DOCKER LOGS ---"
+                            docker logs $APP_NAME || true
+                            echo "--- MYSQL DOCKER LOGS ---"
+                            docker logs bank-mysql || true
                             echo "--- END DOCKER LOGS ---"
                             exit 1
                         fi
