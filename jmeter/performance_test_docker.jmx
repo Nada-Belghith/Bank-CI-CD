@@ -36,7 +36,7 @@
           __P() lit la propriété (-Jhost=Bank) de Jenkins.
         -->
 
-        <!-- <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
@@ -45,13 +45,12 @@
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.path">/</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-        </HTTPSamplerProxy> -->
+        </HTTPSamplerProxy>
         <hashTree/>
 
         <!-- 
           CORRECTION 2 : 
-          J'ai mis à jour le chemin vers "/clients/all" 
-          (d'après votre capture d'écran)
+          Le chemin est "/clients/all" 
         -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /clients/all" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
@@ -63,11 +62,6 @@
           <stringProp name="HTTPSampler.path">/clients/all</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
         </HTTPSamplerProxy>
-        <hashTree/>
-
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
-          <boolProp name="ResultCollector.error_logging">false</boolProp>
-        </ResultCollector>
         <hashTree/>
 
         <!-- 
