@@ -9,10 +9,19 @@ pipeline {
     environment {
         APP_NAME = "Bank"
         DOCKER_IMAGE = "bank-app:latest"
-        JMETER_HOME = "/opt/jmeter/apache-jmeter-5.6.3"
+        
+        // NOUVEAU: Nom de l'image Docker pour JMeter
+        JMETER_DOCKER_IMAGE = "justb4/jmeter:5.6.3" 
+        
+        // NOUVEAU: Nom pour notre réseau Docker privé
+        NETWORK_NAME = "bank-test-net"
+        
+        // On n'a plus besoin de JMETER_HOME
+        // JMETER_HOME = "/opt/jmeter/apache-jmeter-5.6.3"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://Nada-Belghith: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@github.com/Nada-Belghith/Bank.git'
@@ -37,22 +46,20 @@ pipeline {
                 sh 'docker stop $APP_NAME || true'
                 sh 'docker rm $APP_NAME || true'
                 
-                //
-                // CORRECTION FINALE :
-                // On passe les informations de la base de données (qui est sur l'HÔTE)
-                // au conteneur via des variables d'environnement.
-                //
-                // REMPLACEZ "bank_db", "root", et "password" PAR VOS VRAIS IDENTIFIANTS
-                //
+                // NOUVEAU: On crée le réseau pour que les conteneurs puissent se parler
+                sh 'docker network create $NETWORK_NAME || true'
+                
+                // Démarrage du conteneur avec les variables de BDD
                 sh '''
                    docker run -d -p 8083:8083 \
+                   --network $NETWORK_NAME \
                    -e SPRING_DATASOURCE_URL="jdbc:mysql://host.docker.internal:3306/mydb?useSSL=false" \
                    -e SPRING_DATASOURCE_USERNAME="root" \
                    -e SPRING_DATASOURCE_PASSWORD="" \
                    --name $APP_NAME $DOCKER_IMAGE
                 '''
                 
-                // Le script d'attente (il est correct)
+                // Le script d'attente (curl) ne change pas, il vérifie toujours l'hôte
                 sh '''
                     echo "Waiting for Spring Boot to start on http://127.0.0.1:8083 ..."
                     ATTEMPTS=0
@@ -76,26 +83,42 @@ pipeline {
 
         stage('Post-Deployment Performance Test') {
             steps {
-                echo "Running post-deployment JMeter test against 127.0.0.1:8083..."
+                echo "Running post-deployment JMeter test from Docker..."
+                
+                // NOUVEAU: On crée un dossier pour les résultats
+                sh 'mkdir -p ${pwd}/jmeter-results'
+                
+                #
+                # GROSSE MODIFICATION ICI :
+                # On remplace l'ancien appel JMeter par un 'docker run'
+                #
                 sh """
-                    JMETER_JVM_ARGS="-Djava.net.preferIPv4Stack=true" ${env.JMETER_HOME}/bin/jmeter -n -t jmeter/performance_test_docker.jmx -l results_docker.jtl -Jhost=172.17.0.1 -Jport=8083
-           """
+                    docker run --rm --network $NETWORK_NAME \
+                    -v "${pwd}/jmeter:/jmeter" \
+                    -v "${pwd}/jmeter-results:/results" \
+                    ${JMETER_DOCKER_IMAGE} \
+                    -n -t /jmeter/performance_test_docker.jmx \
+                    -l /results/results_docker.jtl \
+                    -Jhost=$APP_NAME \
+                    -Jport=8083
+                """
             }
             post {
                 always {
-                    // Seuil d'échec à 5% d'erreurs
-                    perfReport errorFailedThreshold: 5, sourceDataFiles: 'results_docker.jtl'
+                    # MODIFICATION : On lit le rapport depuis le nouveau dossier
+                    perfReport errorFailedThreshold: 5, sourceDataFiles: 'jmeter-results/results_docker.jtl'
                 }
             }
         }
-    }
+    } // Fin du bloc 'stages'
 
     post {
-        // Le cleanup se fait à la fin, quoi qu'il arrive
         always {
-            echo "Cleaning up Docker container..."
+            echo "Cleaning up Docker container and network..."
             sh 'docker stop $APP_NAME || true'
             sh 'docker rm $APP_NAME || true'
+            // NOUVEAU: On nettoie aussi le réseau
+            sh 'docker network rm $NETWORK_NAME || true'
         }
     }
 }
