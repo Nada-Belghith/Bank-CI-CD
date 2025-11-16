@@ -31,3 +31,44 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build / IDE
+out/
+bin/
+*.class
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Spring Boot
+/*.pid
+
+# JARs and WARs
+*.jar
+*.war
+
+# Temporary files
+tmp/
+temp/
+
+# Environment
+.env
+
+# JMeter results (if generated locally)
+*.jtl
+
+# Docker
+docker-compose.override.yml

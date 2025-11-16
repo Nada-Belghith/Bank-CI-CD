@@ -15,9 +15,25 @@ pipeline {
 
     stages {
 
+        //
+        // ÉTAPE CORRIGÉE ET SÉCURISÉE
+        //
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://Nada-Belghith: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@github.com/Nada-Belghith/Bank.git'
+                // Cette étape est sécurisée.
+                // Elle utilise l'identifiant que vous avez enregistré
+                // dans le gestionnaire de 'Credentials' de Jenkins.
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/Nada-Belghith/Bank.git',
+                        
+                        // Assurez-vous que cet ID correspond à celui
+                        // que vous avez créé dans Jenkins
+                        credentialsId: 'gitid' 
+                    ]]
+                ])
             }
         }
 
@@ -68,9 +84,7 @@ pipeline {
                     echo "MySQL ready"
                 '''
 
-                //
-                // CORRECTION BDD: Ajout de &allowPublicKeyRetrieval=true
-                //
+                // Démarrer l'application Spring Boot
                 sh '''
                     docker run -d -p 8083:8083 --network $NETWORK_NAME \
                       -e SPRING_DATASOURCE_URL="jdbc:mysql://bank-mysql:3306/bank_db?useSSL=false&allowPublicKeyRetrieval=true" \
@@ -88,13 +102,13 @@ pipeline {
                     until curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8083/ | grep -E -q "[234].."; do
                         ATTEMPTS=$((ATTEMPTS+1))
                         if [ "$ATTEMPTS" -ge "$MAX" ]; then
-                            echo "Timed out waiting for application to start"
-                            echo "--- APP DOCKER LOGS ---"
-                            docker logs $APP_NAME || true
-                            echo "--- MYSQL DOCKER LOGS ---"
-                            docker logs bank-mysql || true
-                            echo "--- END DOCKER LOGS ---"
-                            exit 1
+                          echo "Timed out waiting for application to start"
+                          echo "--- APP DOCKER LOGS ---"
+                          docker logs $APP_NAME || true
+                          echo "--- MYSQL DOCKER LOGS ---"
+                          docker logs bank-mysql || true
+                          echo "--- END DOCKER LOGS ---"
+                          exit 1
                         fi
                         sleep 2
                         echo "Waiting... ($ATTEMPTS)"
@@ -132,9 +146,7 @@ pipeline {
     post {
         always {
             echo "Cleaning up Docker container and network..."
-            //
             // CORRECTION NETTOYAGE: On arrête les DEUX conteneurs
-            //
             sh 'docker stop $APP_NAME || true'
             sh 'docker rm $APP_NAME || true'
             sh 'docker stop bank-mysql || true'
