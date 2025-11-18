@@ -44,15 +44,20 @@ pipeline {
                 sh 'mvn clean package -DskipTests'
             }
         }
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                        bat "mvn sonar:sonar -Dsonar.login=%SONAR_TOKEN%"
-                    }
-                }
+        // ...
+stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv(env.SONARQUBE_SERVER) {
+            withCredentials([string(credentialsId: env.SONARQUBE_TOKEN_ID, variable: 'SONAR_TOKEN')]) {
+
+                // VÉRIFIEZ CETTE LIGNE - ce doit être 'sh'
+                sh "mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN}"
+
             }
         }
+    }
+}
+// ...
 
         stage('Build Docker Image') {
             steps {
