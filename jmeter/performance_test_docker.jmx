@@ -29,22 +29,6 @@
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
-        
-        <!-- 
-          CORRECTION SYNTAXE : 
-          Le <HTTPSamplerProxy> ET son <hashTree/> sont tous les deux commentés.
-        -->
-        <!-- <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /" enabled="true">
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments"/>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(host, 127.0.0.1)}</stringProp>
-          <stringProp name="HTTPSampler.port">${__P(port, 8083)}</stringProp>
-          <stringProp name="HTTPSampler.protocol">http</stringProp>
-          <stringProp name="HTTPSampler.path">/</stringProp>
-          <stringProp name="HTTPSampler.method">GET</stringProp>
-        </HTTPSamplerProxy>
-        <hashTree/> -->
 
         <!-- 
           Test de la page d'accueil (décommenté).
@@ -88,7 +72,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
 
-        <!-- Test du formulaire d'ajout de client (GET) -->
+        <!-- Test du formulaire d'ajout de client (GET)
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /clients/add (get form)" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
@@ -99,10 +83,10 @@
           <stringProp name="HTTPSampler.path">/clients/add</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
         </HTTPSamplerProxy>
-        <hashTree/>
+        <hashTree/> -->
 
         <!-- Test de la soumission du formulaire (POST) -->
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /clients/save (add client)" enabled="true">
+        <!-- <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /clients/save (add client)" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="cin" elementType="HTTPArgument">
@@ -133,7 +117,7 @@
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
         </HTTPSamplerProxy>
-        <hashTree/>
+        <hashTree/> -->
 
         <!-- Test de la liste des comptes (page web) -->
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /comptes/all" enabled="true">
