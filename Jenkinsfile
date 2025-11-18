@@ -12,6 +12,7 @@ pipeline {
         JMETER_DOCKER_IMAGE = "justb4/jmeter:latest" 
         NETWORK_NAME = "bank-test-net"
         SONARQUBE = 'SonarQube'
+        SONAR_PROJECT_KEY = 'bank_ci_cd_sonar' 
 
     }
 
@@ -51,7 +52,7 @@ stage('SonarQube Analysis') {
             withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
 
                 // VÉRIFIEZ CETTE LIGNE - ce doit être 'sh'
-                sh "mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN}"
+                        sh "mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN} -Dsonar.projectKey=${SONAR_PROJECT_KEY}"
 
             }
         }
