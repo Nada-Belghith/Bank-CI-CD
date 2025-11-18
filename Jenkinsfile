@@ -27,7 +27,7 @@ pipeline {
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[
-                        url: 'https://github.com/Nada-Belghith/Bank.git',
+                        url: 'https://github.com/Nada-Belghith/Bank-CI-CD.git',
                         
                         // Assurez-vous que cet ID correspond à celui
                         // que vous avez créé dans Jenkins
