@@ -11,6 +11,8 @@ pipeline {
         DOCKER_IMAGE = "bank-app:latest"
         JMETER_DOCKER_IMAGE = "justb4/jmeter:latest" 
         NETWORK_NAME = "bank-test-net"
+        SONARQUBE = 'SonarQube'
+
     }
 
     stages {
@@ -40,6 +42,15 @@ pipeline {
         stage('Build with Maven') {
             steps {
                 sh 'mvn clean package -DskipTests'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                        bat "mvn sonar:sonar -Dsonar.login=%SONAR_TOKEN%"
+                    }
+                }
             }
         }
 
